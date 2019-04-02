@@ -1,0 +1,49 @@
+set(_boink_headers
+    include/boink/assembly.hh
+    include/boink/boink.hh
+    include/boink/cdbg/cdbg.hh
+    include/boink/cdbg/cdbg_types.hh
+    include/boink/cdbg/compactor.hh
+    include/boink/cdbg/metrics.hh
+    include/boink/cdbg/solid_compactor.hh
+    include/boink/dbg.hh
+    include/boink/events.hh
+    include/boink/event_types.hh
+    include/boink/hashing/alphabets.hh
+    include/boink/hashing/exceptions.hh
+    include/boink/hashing/hashing_types.hh
+    include/boink/hashing/hashshifter.hh
+    include/boink/hashing/kmeriterator.hh
+    include/boink/hashing/rollinghashshifter.hh
+    include/boink/hashing/ukhshashshifter.hh
+    include/boink/hashing/ukhs.hh
+    include/boink/interface.hh
+    include/boink/kmers/kmerclient.hh
+    include/boink/metrics.hh
+    include/boink/minimizers.hh
+    include/boink/normalization/diginorm.hh
+    include/boink/parsing/parsing.hh
+    include/boink/parsing/readers.hh
+    include/boink/pdbg.hh
+    include/boink/processors.hh
+    include/boink/reporting/cdbg_component_reporter.hh
+    include/boink/reporting/cdbg_history_reporter.hh
+    include/boink/reporting/cdbg_unitig_reporter.hh
+    include/boink/reporting/cdbg_writer_reporter.hh
+    include/boink/reporting/reporters.hh
+    include/boink/reporting/report_types.hh
+    include/boink/reporting/streaming_compactor_reporter.hh
+    include/boink/reporting/ukhs_signature_reporter.hh
+    include/boink/storage/bitstorage.hh
+    include/boink/storage/bytestorage.hh
+    include/boink/storage/nibblestorage.hh
+    include/boink/storage/partitioned_storage.hh
+    include/boink/storage/qfstorage.hh
+    include/boink/storage/sparseppstorage.hh
+    include/boink/storage/storage.hh
+    include/boink/ukhs_signature.hh
+)
+
+foreach (path ${_boink_headers})
+    list(APPEND BOINK_HEADERS ${CMAKE_SOURCE_DIR}/${path})
+endforeach(path)

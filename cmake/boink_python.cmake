@@ -1,0 +1,20 @@
+set(BOINK_PYTHON
+    boink/args.py
+    boink/draff.py
+    boink/metadata.py
+    boink/tests/conftest.py
+    boink/tests/__init__.py
+    boink/tests/test_assembly.py
+    boink/tests/test_cdbg.py
+    boink/tests/test_dbg.py
+    boink/tests/test_hashing.py
+    boink/tests/test_heap.py
+    boink/tests/test_metrics.py
+    boink/tests/test_minimizers.py
+    boink/tests/test_partitioning.py
+    boink/tests/test_processors.py
+    boink/tests/test_solid_compactor.py
+    boink/tests/test_stats.py
+    boink/tests/utils.py
+    boink/types.py
+)
