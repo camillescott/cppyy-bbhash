@@ -54,6 +54,9 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(
 
 mark_as_advanced(Cppyy_VERSION)
 
+find_library(LibCling_LIBRARY libCling.so PATHS ${Cppyy_DIR}/lib)
+
+
 #
 # Generate a set of bindings from a set of header files. Somewhat like CMake's
 # add_library(), the output is a compiler target. In addition ancilliary files
@@ -221,7 +224,7 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
   set(lib_file ${CMAKE_SHARED_LIBRARY_PREFIX}${lib_name}${CMAKE_SHARED_LIBRARY_SUFFIX})
   set(cpp_file ${CMAKE_CURRENT_BINARY_DIR}/${pkg_simplename}.cpp)
   set(pcm_file ${pkg_dir}/${CMAKE_SHARED_LIBRARY_PREFIX}${lib_name}_rdict.pcm)
-  set(rootmap_file ${pkg_dir}/${pkg_simplename}.rootmap)
+  set(rootmap_file ${pkg_dir}/${CMAKE_SHARED_LIBRARY_PREFIX}${lib_name}.rootmap)
   set(extra_map_file ${pkg_dir}/${pkg_simplename}.map)
   #
   # Package metadata.
@@ -253,7 +256,8 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
   endif()
 
   list(APPEND genreflex_args "-o" "${cpp_file}")
-  list(APPEND genreflex_args "--rootmap" "${rootmap_file}")
+  list(APPEND genreflex_args "--rootmap=${rootmap_file}")
+  list(APPEND genreflex_args "--rootmap-lib=${lib_file}")
   list(APPEND genreflex_args "-l" "${lib_file}")
 
   foreach(dir ${ARG_INCLUDE_DIRS})
@@ -306,7 +310,7 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
   set_property(TARGET ${lib_name} PROPERTY LIBRARY_OUTPUT_DIRECTORY ${pkg_dir})
   target_include_directories(${lib_name} PRIVATE ${Cppyy_INCLUDE_DIRS} ${ARG_INCLUDE_DIRS})
   target_compile_options(${lib_name} PRIVATE ${ARG_COMPILE_OPTIONS})
-  target_link_libraries(${lib_name} ${ARG_LINK_LIBRARIES})
+  target_link_libraries(${lib_name} ${LibCling_LIBRARY} ${ARG_LINK_LIBRARIES})
   #
   # Install. NOTE: The generated files contain as few binding-specific strings
   # as possible.
