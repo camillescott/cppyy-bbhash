@@ -15,6 +15,8 @@ from wheel.bdist_wheel import bdist_wheel
 
 PKG              = '@CPPYY_PKG@'
 VERSION          = '@PROJECT_VERSION@'
+AUTHOR           = '@AUTHOR@'
+EMAIL            = '@EMAIL@'
 (PKG_NAMESPACE,
  PKG_SIMPLENAME) = PKG.rsplit(".", 1) if '.' in PKG else "", PKG
 PKG_DIR          = os.path.dirname(__file__)
@@ -31,13 +33,13 @@ CPPYY_PKG_DATA.extend([ep for ep in EXTRA_PY.split(';') if ep])
 PKG_DESC = '''
 Bindings for {name}.
 These bindings are based on https://cppyy.readthedocs.io/en/latest/, and can be
-used as per the documentation provided via the cppyy.cbl namespace. The environment
-variable LD_LIBRARY_PATH must contain the path of the {}.rootmap file. Use
+used as per the documentation provided via the cppyy.gbl namespace. The environment
+variable LD_LIBRARY_PATH must contain the path of the rootmap file. Use
 "import cppyy; from cppyy.gbl import <some-C++-entity>".
 
-Alternatively, use "import {}". This convenience wrapper supports "discovery" of the
+Alternatively, use "import {name}". This convenience wrapper supports "discovery" of the
 available C++ entities using, for example Python 3's command line completion support.
-'''.format(name=PKG_SIMPLE_NAME)
+'''.format(name=PKG)
 
 
 class cppyy_build_py(build_py):
@@ -63,8 +65,6 @@ class cppyy_build_py(build_py):
             with open(namespace_init, "w") as f:
                 f.write("__path__ = __import__('pkgutil').extend_path(__path__, __name__)\n")
             self.copy_file(namespace_init, os.path.join(self.build_lib, namespace_init))
-        for f in self.package_data[PKG]:
-            self.copy_file(os.path.join(PKG_DIR, pkg_subdir, f), os.path.join(self.build_lib, pkg_subdir, f))
 
 
 class cppyy_clean(clean):
@@ -96,7 +96,6 @@ class cppyy_bdist_wheel(bdist_wheel):
 CLASSIFIERS = [
     "Environment :: Console",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: BSD License",
     "Natural Language :: English",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: C++",
@@ -107,18 +106,17 @@ CLASSIFIERS = [
 
 SETUP_METADATA = \
 {
-    "name": PKG,
-    "version": VERSION,
-    "description": DESC,
-    "long_description": open("README.rst").read(),
-    "author": "Camille Scott",
-    "author_email": 'camille.scott.w@gmail.com',
-    "packages": [PKG, PKG + '.tests'],
-    "package_data": {PKG: CPPYY_PKG_DATA},
+    "name":                 PKG,
+    "version":              VERSION,
+    "description":          PKG_DESC,
+    "long_description":     open("README.rst").read(),
+    "author":               AUTHOR,
+    "author_email":         EMAIL,
+    "packages":             [PKG, PKG + '.tests'],
     "include_package_data": True,
-    "zip_safe": False,
-    "platforms": ['any'],
-    "classifiers": CLASSIFIERS,
+    "zip_safe":             False,
+    "platforms":            ['any'],
+    "classifiers":          CLASSIFIERS,
     "cmdclass": {
         'build_py':    cppyy_build_py,
         'clean':       cppyy_clean,

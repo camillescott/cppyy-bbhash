@@ -56,7 +56,7 @@ target_link_libraries(bbhash
 # more modern way anyhow? Code was modified from the versions cppyy distributes.
 #
 cppyy_add_bindings(
-    "cppyy_bbhash" "1.0" "Camille Scott" "cswel@ucdavis.edu"
+   "cppyy_bbhash" "1.0" "Camille Scott" "cswel@ucdavis.edu"
    LICENSE "MIT"
    LANGUAGE_STANDARD "14"
    SELECTION_XML  ${CMAKE_CURRENT_SOURCE_DIR}/selection.xml

@@ -1,7 +1,7 @@
 import os
 import cppyy
-from . import bindings_utils
-bindings_utils.initialise('@CPPYY_PKG@', '@CPPYY_LIB_SO', '@CPPYY_MAP@')
-del bindings_utils
+from .initializor import initialise
+initialise('@CPPYY_PKG@', '@CPPYY_LIB_SO@', '@CPPYY_MAP@')
+del initialise
 
 @NAMESPACE_INJECTIONS@

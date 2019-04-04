@@ -27,29 +27,28 @@ find_program(genreflex_EXEC NAMES genreflex)
 execute_process(COMMAND cling-config --cmake OUTPUT_VARIABLE CPYY_MODULE_PATH OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 if(genreflex_EXEC)
-  #
-  # Cppyy_DIR.
-  #
-  set(Cppyy_DIR ${CPYY_MODULE_PATH}/../)
-  #
-  # Cppyy_INCLUDE_DIRS.
-  #
-  set(Cppyy_INCLUDE_DIRS ${Cppyy_DIR}include)
-  #
-  # Cppyy_VERSION.
-  #
-  find_package(ROOT QUIET REQUIRED PATHS ${CPYY_MODULE_PATH})
-  if(ROOT_FOUND)
-    set(Cppyy_VERSION ${ROOT_VERSION})
-  endif()
+    #
+    # Cppyy_DIR.
+    #
+    set(Cppyy_DIR ${CPYY_MODULE_PATH}/../)
+    #
+    # Cppyy_INCLUDE_DIRS.
+    #
+    set(Cppyy_INCLUDE_DIRS ${Cppyy_DIR}include)
+    #
+    # Cppyy_VERSION.
+    #
+    find_package(ROOT QUIET REQUIRED PATHS ${CPYY_MODULE_PATH})
+    if(ROOT_FOUND)
+        set(Cppyy_VERSION ${ROOT_VERSION})
+    endif()
 endif()
 
 include(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(
-    Cppyy
-    REQUIRED_VARS genreflex_EXEC Cppyy_DIR Cppyy_INCLUDE_DIRS
-    VERSION_VAR Cppyy_VERSION)
-
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(Cppyy
+                                  REQUIRED_VARS genreflex_EXEC Cppyy_DIR Cppyy_INCLUDE_DIRS
+                                  VERSION_VAR Cppyy_VERSION
+)
 mark_as_advanced(Cppyy_VERSION)
 
 find_library(LibCling_LIBRARY libCling.so PATHS ${Cppyy_DIR}/lib)
@@ -68,14 +67,10 @@ find_library(LibCling_LIBRARY libCling.so PATHS ${Cppyy_DIR}/lib)
 #       [URL url]
 #       [LICENSE license]
 #       [LANGUAGE_STANDARD std]
-#       [LINKDEFS linkdef...]
-#       [IMPORTS pcm...]
 #       [GENERATE_OPTIONS option...]
 #       [COMPILE_OPTIONS option...]
 #       [INCLUDE_DIRS dir...]
 #       [LINK_LIBRARIES library...]
-#       [H_DIRS H_DIRSectory]
-#       H_FILES h_file...)
 #
 # The bindings are based on https://cppyy.readthedocs.io/en/latest/, and can be
 # used as per the documentation provided via the cppyy.cgl namespace. First add
@@ -199,6 +194,11 @@ find_library(LibCling_LIBRARY libCling.so PATHS ${Cppyy_DIR}/lib)
 #       H_DIRS ${_H_DIRS}
 #       H_FILES "dcrawinfocontainer.h;kdcraw.h;rawdecodingsettings.h;rawfiles.h")
 #
+
+
+#
+# Generate setup.py from the setup.py.in template.
+#
 function(cppyy_generate_setup pkg version lib_so_file rootmap_file pcm_file map_file)
     set(SETUP_PY_FILE ${CMAKE_CURRENT_BINARY_DIR}/setup.py)
     set(CPPYY_PKG ${pkg})
@@ -211,7 +211,9 @@ function(cppyy_generate_setup pkg version lib_so_file rootmap_file pcm_file map_
     set(SETUP_PY_FILE ${SETUP_PY_FILE} PARENT_SCOPE)
 endfunction(cppyy_generate_setup)
 
-
+#
+# Generate a packages __init__.py using the __init__.py.in template.
+#
 function(cppyy_generate_init)
     set(simple_args PKG LIB_FILE MAP_FILE)
     set(list_args NAMESPACES)
@@ -243,218 +245,196 @@ endfunction(cppyy_generate_init)
 
 
 function(cppyy_add_bindings pkg pkg_version author author_email)
-  set(simple_args URL LICENSE LANGUAGE_STANDARD)
-  set(list_args INTERFACE_FILE HEADERS SELECTION_XML COMPILE_OPTIONS INCLUDE_DIRS LINK_LIBRARIES 
-      EXTRA_PYTHONS GENERATE_OPTIONS NAMESPACES)
-  cmake_parse_arguments(
-    ARG
-    ""
-    "${simple_args}"
-    "${list_args}"
-    ${ARGN})
-  if(NOT "${ARG_UNPARSED_ARGUMENTS}" STREQUAL "")
-    message(SEND_ERROR "Unexpected arguments specified '${ARG_UNPARSED_ARGUMENTS}'")
-  endif()
-  string(REGEX MATCH "[^\.]+$" pkg_simplename ${pkg})
-  string(REGEX REPLACE "\.?${pkg_simplename}" "" pkg_namespace ${pkg})
-  set(pkg_dir ${CMAKE_CURRENT_BINARY_DIR})
-  string(REPLACE "." "/" tmp ${pkg})
-  set(pkg_dir "${pkg_dir}/${tmp}")
-  set(lib_name "${pkg_namespace}${pkg_simplename}Cppyy")
-  set(lib_file ${CMAKE_SHARED_LIBRARY_PREFIX}${lib_name}${CMAKE_SHARED_LIBRARY_SUFFIX})
-  set(cpp_file ${CMAKE_CURRENT_BINARY_DIR}/${pkg_simplename}.cpp)
-  set(pcm_file ${pkg_dir}/${CMAKE_SHARED_LIBRARY_PREFIX}${lib_name}_rdict.pcm)
-  set(rootmap_file ${pkg_dir}/${CMAKE_SHARED_LIBRARY_PREFIX}${lib_name}.rootmap)
-  set(extra_map_file ${pkg_dir}/${pkg_simplename}.map)
+    set(simple_args URL LICENSE LANGUAGE_STANDARD)
+    set(list_args INTERFACE_FILE HEADERS SELECTION_XML COMPILE_OPTIONS INCLUDE_DIRS LINK_LIBRARIES 
+        EXTRA_PYTHONS GENERATE_OPTIONS NAMESPACES)
+    cmake_parse_arguments(
+        ARG
+        ""
+        "${simple_args}"
+        "${list_args}"
+        ${ARGN})
+    if(NOT "${ARG_UNPARSED_ARGUMENTS}" STREQUAL "")
+        message(SEND_ERROR "Unexpected arguments specified '${ARG_UNPARSED_ARGUMENTS}'")
+    endif()
+    string(REGEX MATCH "[^\.]+$" pkg_simplename ${pkg})
+    string(REGEX REPLACE "\.?${pkg_simplename}" "" pkg_namespace ${pkg})
+    set(pkg_dir ${CMAKE_CURRENT_BINARY_DIR})
+    string(REPLACE "." "/" tmp ${pkg})
+    set(pkg_dir "${pkg_dir}/${tmp}")
+    set(lib_name "${pkg_namespace}${pkg_simplename}Cppyy")
+    set(lib_file ${CMAKE_SHARED_LIBRARY_PREFIX}${lib_name}${CMAKE_SHARED_LIBRARY_SUFFIX})
+    set(cpp_file ${CMAKE_CURRENT_BINARY_DIR}/${pkg_simplename}.cpp)
+    set(pcm_file ${pkg_dir}/${CMAKE_SHARED_LIBRARY_PREFIX}${lib_name}_rdict.pcm)
+    set(rootmap_file ${pkg_dir}/${CMAKE_SHARED_LIBRARY_PREFIX}${lib_name}.rootmap)
+    set(extra_map_file ${pkg_dir}/${pkg_simplename}.map)
 
-  #
-  # Package metadata.
-  #
-  if("${ARG_URL}" STREQUAL "")
-    string(REPLACE "." "-" tmp ${pkg})
-    set(ARG_URL "https://pypi.python.org/pypi/${tmp}")
-  endif()
-  if("${ARG_LICENSE}" STREQUAL "")
-    set(ARG_LICENSE "LGPL2.1")
-  endif()
-  #
-  # Language standard.
-  #
-  if("${ARG_LANGUAGE_STANDARD}" STREQUAL "")
-    set(ARG_LANGUAGE_STANDARD "14")
-  endif()
+    #
+    # Package metadata.
+    #
+    if("${ARG_URL}" STREQUAL "")
+        string(REPLACE "." "-" tmp ${pkg})
+        set(ARG_URL "https://pypi.python.org/pypi/${tmp}")
+    endif()
+    if("${ARG_LICENSE}" STREQUAL "")
+        set(ARG_LICENSE "LGPL2.1")
+    endif()
 
-  #
-  # Set up genreflex args.
-  #
-  set(genreflex_args)
-  if("${ARG_INTERFACE_FILE}" STREQUAL "")
-      message(SEND_ERROR "No Interface specified")
-  endif()
-  list(APPEND genreflex_args "${ARG_INTERFACE_FILE}")
-  if(NOT "${ARG_SELECTION_XML}" STREQUAL "")
-      list(APPEND genreflex_args "--selection=${ARG_SELECTION_XML}")
-  endif()
+    #
+    # Language standard.
+    #
+    if("${ARG_LANGUAGE_STANDARD}" STREQUAL "")
+        set(ARG_LANGUAGE_STANDARD "14")
+    endif()
 
-  list(APPEND genreflex_args "-o" "${cpp_file}")
-  list(APPEND genreflex_args "--rootmap=${rootmap_file}")
-  list(APPEND genreflex_args "--rootmap-lib=${lib_file}")
-  list(APPEND genreflex_args "-l" "${lib_file}")
+    #
+    # Set up genreflex args.
+    #
+    set(genreflex_args)
+    if("${ARG_INTERFACE_FILE}" STREQUAL "")
+        message(SEND_ERROR "No Interface specified")
+    endif()
+    list(APPEND genreflex_args "${ARG_INTERFACE_FILE}")
+    if(NOT "${ARG_SELECTION_XML}" STREQUAL "")
+        list(APPEND genreflex_args "--selection=${ARG_SELECTION_XML}")
+    endif()
 
-  foreach(dir ${ARG_INCLUDE_DIRS})
-    list(APPEND genreflex_args "-I${dir}")
-  endforeach(dir)
+    list(APPEND genreflex_args "-o" "${cpp_file}")
+    list(APPEND genreflex_args "--rootmap=${rootmap_file}")
+    list(APPEND genreflex_args "--rootmap-lib=${lib_file}")
+    list(APPEND genreflex_args "-l" "${lib_file}")
 
-  set(genreflex_cxxflags "--cxxflags")
-  list(APPEND genreflex_cxxflags "-std=c++${ARG_LANGUAGE_STANDARD}")
+    foreach(dir ${ARG_INCLUDE_DIRS})
+        list(APPEND genreflex_args "-I${dir}")
+    endforeach(dir)
 
-  # run genreflex
-  file(MAKE_DIRECTORY ${pkg_dir})
-  add_custom_command(OUTPUT ${cpp_file} ${rootmap_file} ${pcm_file}
-    COMMAND ${genreflex_EXEC} ${genreflex_args} ${genreflex_cxxflags}
-    WORKING_DIRECTORY ${pkg_dir}
-  )
+    set(genreflex_cxxflags "--cxxflags")
+    list(APPEND genreflex_cxxflags "-std=c++${ARG_LANGUAGE_STANDARD}")
 
-  #
-  # Set up generator args.
-  #
-  list(APPEND ARG_GENERATE_OPTIONS "-std=c++${ARG_LANGUAGE_STANDARD}")
-  foreach(dir ${ARG_INCLUDE_DIRS})
-    list(APPEND ARG_GENERATE_OPTIONS "-I${dir}")
-  endforeach(dir)
-  #
-  # Run generator. First check dependencies. TODO: temporary hack: rather
-  # than an external dependency, enable libclang in the local build.
-  #
-  find_package(LibClang REQUIRED)
-  get_filename_component(Cppyygen_EXECUTABLE ${genreflex_EXEC} DIRECTORY)
-  set(Cppyygen_EXECUTABLE ${Cppyygen_EXECUTABLE}/cppyy-generator)
-  #
-  # Set up arguments for cppyy-generator.
-  #
-  set(generator_args)
-  foreach(arg IN LISTS ARG_GENERATE_OPTIONS)
-    string(REGEX REPLACE "^-" "\\\\-" arg ${arg})
-    list(APPEND generator_args ${arg})
-  endforeach()
+    #
+    # run genreflex
+    #
+    file(MAKE_DIRECTORY ${pkg_dir})
+    add_custom_command(OUTPUT ${cpp_file} ${rootmap_file} ${pcm_file}
+                       COMMAND ${genreflex_EXEC} ${genreflex_args} ${genreflex_cxxflags}
+                       WORKING_DIRECTORY ${pkg_dir}
+    )
 
-  add_custom_command(OUTPUT ${extra_map_file}
-      COMMAND ${LibClang_PYTHON_EXECUTABLE} ${Cppyygen_EXECUTABLE} --libclang ${LibClang_LIBRARY} --flags "\"${generator_args}\""
-      ${extra_map_file} ${ARG_HEADERS} WORKING_DIRECTORY ${pkg_dir}
-  )
-  #
-  # Compile/link.
-  #
-  add_library(${lib_name} SHARED ${cpp_file} ${pcm_file} ${rootmap_file} ${extra_map_file})
-  set_property(TARGET ${lib_name} PROPERTY VERSION ${version})
-  set_property(TARGET ${lib_name} PROPERTY CXX_STANDARD ${ARG_LANGUAGE_STANDARD})
-  set_property(TARGET ${lib_name} PROPERTY LIBRARY_OUTPUT_DIRECTORY ${pkg_dir})
-  target_include_directories(${lib_name} PRIVATE ${Cppyy_INCLUDE_DIRS} ${ARG_INCLUDE_DIRS})
-  target_compile_options(${lib_name} PRIVATE ${ARG_COMPILE_OPTIONS})
-  target_link_libraries(${lib_name} ${LibCling_LIBRARY} ${ARG_LINK_LIBRARIES})
+    #
+    # Set up generator args.
+    #
+    list(APPEND ARG_GENERATE_OPTIONS "-std=c++${ARG_LANGUAGE_STANDARD}")
+    foreach(dir ${ARG_INCLUDE_DIRS})
+        list(APPEND ARG_GENERATE_OPTIONS "-I${dir}")
+    endforeach(dir)
+    #
+    # Run generator. First check dependencies. TODO: temporary hack: rather
+    # than an external dependency, enable libclang in the local build.
+    #
+    find_package(LibClang REQUIRED)
+    get_filename_component(Cppyygen_EXECUTABLE ${genreflex_EXEC} DIRECTORY)
+    set(Cppyygen_EXECUTABLE ${Cppyygen_EXECUTABLE}/cppyy-generator)
+    #
+    # Set up arguments for cppyy-generator.
+    #
+    set(generator_args)
+    foreach(arg IN LISTS ARG_GENERATE_OPTIONS)
+        string(REGEX REPLACE "^-" "\\\\-" arg ${arg})
+        list(APPEND generator_args ${arg})
+    endforeach()
 
-  #
-  # Generate __init__.py
-  #
-  cppyy_generate_init(PKG        ${pkg}
-                      LIB_FILE   ${lib_file}
-                      MAP_FILE   ${extra_map_file}
-                      NAMESPACES ${ARG_NAMESPACES}
-  )
-  set(INIT_PY_FILE ${INIT_PY_FILE} PARENT_SCOPE)
+    add_custom_command(OUTPUT ${extra_map_file}
+                       COMMAND ${LibClang_PYTHON_EXECUTABLE} ${Cppyygen_EXECUTABLE} 
+                               --libclang ${LibClang_LIBRARY} --flags "\"${generator_args}\""
+                               ${extra_map_file} ${ARG_HEADERS}
+                       WORKING_DIRECTORY ${pkg_dir}
+    )
+    #
+    # Compile/link.
+    #
+    add_library(${lib_name} SHARED ${cpp_file} ${pcm_file} ${rootmap_file} ${extra_map_file})
+    set_property(TARGET ${lib_name} PROPERTY VERSION ${version})
+    set_property(TARGET ${lib_name} PROPERTY CXX_STANDARD ${ARG_LANGUAGE_STANDARD})
+    set_property(TARGET ${lib_name} PROPERTY LIBRARY_OUTPUT_DIRECTORY ${pkg_dir})
+    target_include_directories(${lib_name} PRIVATE ${Cppyy_INCLUDE_DIRS} ${ARG_INCLUDE_DIRS})
+    target_compile_options(${lib_name} PRIVATE ${ARG_COMPILE_OPTIONS})
+    target_link_libraries(${lib_name} ${LibCling_LIBRARY} ${ARG_LINK_LIBRARIES})
 
-  #
-  # Generate setup.py
-  #
-  cppyy_generate_setup(${pkg} ${pkg_version} ${lib_file} ${rootmap_file} ${pcm_file} ${extra_map_file})
-  set(SETUP_PY_FILE ${SETUP_PY_FILE} PARENT_SCOPE)
+    #
+    # Generate __init__.py
+    #
+    cppyy_generate_init(PKG        ${pkg}
+                        LIB_FILE   ${lib_file}
+                        MAP_FILE   ${extra_map_file}
+                        NAMESPACES ${ARG_NAMESPACES}
+    )
+    set(INIT_PY_FILE ${INIT_PY_FILE} PARENT_SCOPE)
 
-  file(WRITE ${setup_cfg} "[bdist_wheel]
-universal=1
-")
-  #
-  # Generate a pytest/nosetest sanity test script.
-  #
-  file(
-    GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/test.py
-    CONTENT "# pytest/nosetest sanity test script.
-import logging
-import os
-import pydoc
-import subprocess
-import sys
+    #
+    # Generate setup.py
+    #
+    cppyy_generate_setup(${pkg}
+                         ${pkg_version}
+                         ${lib_file}
+                         ${rootmap_file}
+                         ${pcm_file}
+                         ${extra_map_file}
+    )
+    set(SETUP_PY_FILE ${SETUP_PY_FILE} PARENT_SCOPE)
 
-from cppyy_backend import bindings_utils
+    #
+    # Generate setup.cfg
+    #
+    set(setup_cfg ${CMAKE_CURRENT_BINARY_DIR}/setup.cfg)
+    configure_file(${CMAKE_SOURCE_DIR}/setup.cfg.in ${setup_cfg})
 
+    #
+    # Copy README
+    #
+    file(COPY ${CMAKE_SOURCE_DIR}/README.rst DESTINATION . USE_SOURCE_PERMISSIONS)
 
-SCRIPT_DIR = os.path.dirname(__file__)
-pkg = '${pkg}'
-PIPS = None
+    #
+    # Copy initializor code
+    #
+    file(COPY ${CMAKE_SOURCE_DIR}/initializor.py DESTINATION ${pkg_dir} USE_SOURCE_PERMISSIONS)
 
+    #
+    # Generate a pytest/nosetest sanity test script.
+    #
+    set(PKG ${pkg})
+    configure_file(${CMAKE_SOURCE_DIR}/test_bindings.py.in ${pkg_dir}/tests/test_bindings.py)
 
-class Test(object):
-    @classmethod
-    def setup_class(klass):
-        #
-        # Make an attempt to check the verbosity setting (ignore quiet!).
-        #
-        verbose = [a for a in sys.argv[1:] if a.startswith(('-v', '--verbos'))]
-        if verbose:
-            logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(name)s %(levelname)s: %(message)s')
-        else:
-            logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
-        global PIPS
-        PIPS = bindings_utils.find_pips()
+    #
+    # Generate MANIFEST.in 
+    #
+    configure_file(${CMAKE_SOURCE_DIR}/MANIFEST.in.in ${CMAKE_CURRENT_BINARY_DIR}/MANIFEST.in)
 
-    @classmethod
-    def teardown_class(klass):
-        pass
-
-    def setUp(self):
-        '''This method is run once before _each_ test method is executed'''
-
-    def teardown(self):
-        '''This method is run once after _each_ test method is executed'''
-
-    def test_install(self):
-        for pip in PIPS:
-            subprocess.check_call([pip, 'install', '--force-reinstall', '--pre', '.'], cwd=SCRIPT_DIR)
-
-    def test_import(self):
-        __import__(pkg)
-
-    def test_help(self):
-        pydoc.render_doc(pkg)
-
-    def test_uninstall(self):
-        for pip in PIPS:
-            subprocess.check_call([pip, 'uninstall', '--yes', pkg], cwd=SCRIPT_DIR)
-")
-  #
-  # Stage extra Python code.
-  #
-  foreach(extra_python IN LISTS ARG_EXTRA_PYTHONS)
-    file(GENERATE OUTPUT ${pkg_dir}/../${extra_python} INPUT ${CMAKE_CURRENT_SOURCE_DIR}/${extra_python})
-  endforeach()
-  #
-  # Return results.
-  #
-  set(target ${lib_name} PARENT_SCOPE)
-  set(setup_py ${setup_py} PARENT_SCOPE)
+    #
+    # Stage extra Python code.
+    #
+    foreach(extra_python IN LISTS ARG_EXTRA_PYTHONS)
+        file(GENERATE OUTPUT ${pkg_dir}/../${extra_python} INPUT ${CMAKE_CURRENT_SOURCE_DIR}/${extra_python})
+    endforeach()
+    #
+    # Return results.
+    #
+    set(CPPYY_LIB_TARGET ${lib_name} PARENT_SCOPE)
+    set(SETUP_PY_FILE    ${setup_py} PARENT_SCOPE)
 endfunction(cppyy_add_bindings)
+
 
 #
 # Return a list of available pip programs.
 #
 function(cppyy_find_pips)
-  execute_process(
-    COMMAND python -c "from cppyy_backend import bindings_utils; print(\";\".join(bindings_utils.find_pips()))"
-    OUTPUT_VARIABLE _stdout
-    ERROR_VARIABLE _stderr
-    RESULT_VARIABLE _rc
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
-  if(NOT "${_rc}" STREQUAL "0")
-    message(FATAL_ERROR "Error finding pips: (${_rc}) ${_stderr}")
-  endif()
-  set(PIP_EXECUTABLES ${_stdout} PARENT_SCOPE)
+    execute_process(
+        COMMAND python -c "from cppyy_backend import bindings_utils; print(\";\".join(bindings_utils.find_pips()))"
+        OUTPUT_VARIABLE _stdout
+        ERROR_VARIABLE _stderr
+        RESULT_VARIABLE _rc
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if(NOT "${_rc}" STREQUAL "0")
+        message(FATAL_ERROR "Error finding pips: (${_rc}) ${_stderr}")
+    endif()
+    set(PIP_EXECUTABLES ${_stdout} PARENT_SCOPE)
 endfunction(cppyy_find_pips)
