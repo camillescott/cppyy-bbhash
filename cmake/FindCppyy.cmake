@@ -34,12 +34,10 @@ if(genreflex_EXEC)
   #
   # Cppyy_INCLUDE_DIRS.
   #
-  #get_filename_component(Cppyy_INCLUDE_DIRS ${Cppyy_DIR} DIRECTORY)
   set(Cppyy_INCLUDE_DIRS ${Cppyy_DIR}include)
   #
   # Cppyy_VERSION.
   #
-  #find_package(ROOT QUIET REQUIRED PATHS ${CMAKE_CURRENT_LIST_DIR})
   find_package(ROOT QUIET REQUIRED PATHS ${CPYY_MODULE_PATH})
   if(ROOT_FOUND)
     set(Cppyy_VERSION ${ROOT_VERSION})
@@ -55,7 +53,6 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(
 mark_as_advanced(Cppyy_VERSION)
 
 find_library(LibCling_LIBRARY libCling.so PATHS ${Cppyy_DIR}/lib)
-
 
 #
 # Generate a set of bindings from a set of header files. Somewhat like CMake's
@@ -202,10 +199,53 @@ find_library(LibCling_LIBRARY libCling.so PATHS ${Cppyy_DIR}/lib)
 #       H_DIRS ${_H_DIRS}
 #       H_FILES "dcrawinfocontainer.h;kdcraw.h;rawdecodingsettings.h;rawfiles.h")
 #
+function(cppyy_generate_setup pkg version lib_so_file rootmap_file pcm_file map_file)
+    set(SETUP_PY_FILE ${CMAKE_CURRENT_BINARY_DIR}/setup.py)
+    set(CPPYY_PKG ${pkg})
+    get_filename_component(CPPYY_LIB_SO ${lib_so_file} NAME)
+    get_filename_component(CPPYY_ROOTMAP ${rootmap_file} NAME)
+    get_filename_component(CPPYY_PCM ${pcm_file} NAME)
+    get_filename_component(CPPYY_MAP ${map_file} NAME)
+    configure_file(${CMAKE_SOURCE_DIR}/setup.py.in ${SETUP_PY_FILE})
+
+    set(SETUP_PY_FILE ${SETUP_PY_FILE} PARENT_SCOPE)
+endfunction(cppyy_generate_setup)
+
+
+function(cppyy_generate_init)
+    set(simple_args PKG LIB_FILE MAP_FILE)
+    set(list_args NAMESPACES)
+    cmake_parse_arguments(ARG
+                          ""
+                          "${simple_args}"
+                          "${list_args}"
+                          ${ARGN}
+    )
+
+    set(INIT_PY_FILE ${CMAKE_CURRENT_BINARY_DIR}/${ARG_PKG}/__init__.py)
+    set(CPPYY_PKG ${ARG_PKG})
+    get_filename_component(CPPYY_LIB_SO ${ARG_LIB_FILE} NAME)
+    get_filename_component(CPPYY_MAP ${ARG_MAP_FILE} NAME)
+
+    list(JOIN ARG_NAMESPACES ", " _namespaces)
+
+    if(NOT "${ARG_NAMESPACES}" STREQUAL "")
+        list(JOIN ARG_NAMESPACES ", " _namespaces)
+        set(NAMESPACE_INJECTIONS "from cppyy.gbl import ${_namespaces}")
+    else()
+        set(NAMESPACE_INJECTIONS "")
+    endif()
+
+    configure_file(${CMAKE_SOURCE_DIR}/__init__.py.in ${INIT_PY_FILE})
+
+    set(INIT_PY_FILE ${INIT_PY_FILE} PARENT_SCOPE)
+endfunction(cppyy_generate_init)
+
+
 function(cppyy_add_bindings pkg pkg_version author author_email)
   set(simple_args URL LICENSE LANGUAGE_STANDARD)
   set(list_args INTERFACE_FILE HEADERS SELECTION_XML COMPILE_OPTIONS INCLUDE_DIRS LINK_LIBRARIES 
-      EXTRA_PYTHONS GENERATE_OPTIONS)
+      EXTRA_PYTHONS GENERATE_OPTIONS NAMESPACES)
   cmake_parse_arguments(
     ARG
     ""
@@ -226,6 +266,7 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
   set(pcm_file ${pkg_dir}/${CMAKE_SHARED_LIBRARY_PREFIX}${lib_name}_rdict.pcm)
   set(rootmap_file ${pkg_dir}/${CMAKE_SHARED_LIBRARY_PREFIX}${lib_name}.rootmap)
   set(extra_map_file ${pkg_dir}/${pkg_simplename}.map)
+
   #
   # Package metadata.
   #
@@ -311,28 +352,23 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
   target_include_directories(${lib_name} PRIVATE ${Cppyy_INCLUDE_DIRS} ${ARG_INCLUDE_DIRS})
   target_compile_options(${lib_name} PRIVATE ${ARG_COMPILE_OPTIONS})
   target_link_libraries(${lib_name} ${LibCling_LIBRARY} ${ARG_LINK_LIBRARIES})
+
   #
-  # Install. NOTE: The generated files contain as few binding-specific strings
-  # as possible.
+  # Generate __init__.py
   #
-  file(
-    GENERATE OUTPUT "${pkg_dir}/__init__.py"
-    CONTENT "from cppyy_backend import bindings_utils
+  cppyy_generate_init(PKG        ${pkg}
+                      LIB_FILE   ${lib_file}
+                      MAP_FILE   ${extra_map_file}
+                      NAMESPACES ${ARG_NAMESPACES}
+  )
+  set(INIT_PY_FILE ${INIT_PY_FILE} PARENT_SCOPE)
 
-bindings_utils.initialise('${pkg}', __file__, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}')
-del bindings_utils
-")
-  set(setup_py ${CMAKE_CURRENT_BINARY_DIR}/setup.py)
-  file(
-    GENERATE OUTPUT ${setup_py}
-    CONTENT "from cppyy_backend import bindings_utils
+  #
+  # Generate setup.py
+  #
+  cppyy_generate_setup(${pkg} ${pkg_version} ${lib_file} ${rootmap_file} ${pcm_file} ${extra_map_file})
+  set(SETUP_PY_FILE ${SETUP_PY_FILE} PARENT_SCOPE)
 
-
-bindings_utils.setup('${pkg}', __file__, '${CMAKE_SHARED_LIBRARY_PREFIX}', '${CMAKE_SHARED_LIBRARY_SUFFIX}',
-                     '${ARG_EXTRA_PYTHONS}',
-                     '${pkg_version}', '${author}', '${author_email}', '${ARG_URL}', '${ARG_LICENSE}')
-")
-  set(setup_cfg ${CMAKE_CURRENT_BINARY_DIR}/setup.cfg)
   file(WRITE ${setup_cfg} "[bdist_wheel]
 universal=1
 ")
@@ -397,7 +433,6 @@ class Test(object):
   #
   # Stage extra Python code.
   #
-  message(${pkg_dir})
   foreach(extra_python IN LISTS ARG_EXTRA_PYTHONS)
     file(GENERATE OUTPUT ${pkg_dir}/../${extra_python} INPUT ${CMAKE_CURRENT_SOURCE_DIR}/${extra_python})
   endforeach()

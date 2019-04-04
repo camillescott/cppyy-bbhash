@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.12)
 
 project(cppyy_bbhash LANGUAGES CXX VERSION 0.1 DESCRIPTION "cppyy bindings for bbhash")
 
@@ -64,4 +64,5 @@ cppyy_add_bindings(
    HEADERS        ${HEADERS} ${CMAKE_CURRENT_SOURCE_DIR}/interface.hh
    INCLUDE_DIRS   ${CMAKE_CURRENT_SOURCE_DIR}/bbhash
    LINK_LIBRARIES bbhash
+   NAMESPACES     boomphf
 )

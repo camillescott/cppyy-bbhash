@@ -1,7 +1,5 @@
 <lcgdict>
     <selection>
-        <class pattern="boomphf::SingleHashFunctor<*>"/>
-        <class pattern="boomphf::mphf<*,*>"/>
         <class pattern="boomphf::*"/>
     </selection>        
     <exclusion>

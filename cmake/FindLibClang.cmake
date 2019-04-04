@@ -24,7 +24,7 @@ function(_find_libclang_python python_executable)
     #
     foreach(exe IN ITEMS python3 python python2)
         execute_process(
-            COMMAND ${exe} -c "from clang.cindex import Config; Config.set_library_file(\"${LibClang_LIBRARY}\"); Config().lib; print(Config().get_filename())"
+            COMMAND ${exe} -c "from clang.cindex import Config; Config.set_library_file(\"${LibClang_LIBRARY}\"); Config().lib"
             ERROR_VARIABLE _stderr
             RESULT_VARIABLE _rc
             OUTPUT_STRIP_TRAILING_WHITESPACE)

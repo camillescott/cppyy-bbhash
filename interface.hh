@@ -11,7 +11,6 @@ template class boomphf::SingleHashFunctor<int16_t>;
 template class boomphf::SingleHashFunctor<int32_t>;
 template class boomphf::SingleHashFunctor<int64_t>;
 
-
 template class boomphf::mphf<uint16_t, boomphf::SingleHashFunctor<uint16_t>>;
 template class boomphf::mphf<uint32_t, boomphf::SingleHashFunctor<uint32_t>>;
 template class boomphf::mphf<uint64_t, boomphf::SingleHashFunctor<uint64_t>>;

@@ -19,10 +19,10 @@ VERSION          = '@PROJECT_VERSION@'
  PKG_SIMPLENAME) = PKG.rsplit(".", 1) if '.' in PKG else "", PKG
 PKG_DIR          = os.path.dirname(__file__)
 
-CPPYY_LIB_SO     = '@CPPYY_LIB_SO@'
-CPPYY_ROOTMAP    = '@CPPYY_ROOTMAP@'
-CPPYY_PCM        = '@CPPYY_PCM@'
-CPPYY_MAP        = '@CPPYY_MAP@'
+CPPYY_LIB_SO     = os.path.join(PKG, '@CPPYY_LIB_SO@')
+CPPYY_ROOTMAP    = os.path.join(PKG, '@CPPYY_ROOTMAP@')
+CPPYY_PCM        = os.path.join(PKG, '@CPPYY_PCM@')
+CPPYY_MAP        = os.path.join(PKG, '@CPPYY_MAP@')
 EXTRA_PY         = '@EXTRA_PY@'
 
 CPPYY_PKG_DATA = [CPPYY_LIB_SO, CPPYY_ROOTMAP, CPPYY_PCM, CPPYY_MAP]
@@ -92,18 +92,17 @@ class cppyy_bdist_wheel(bdist_wheel):
         bdist_wheel.finalize_options(self)
         self.root_is_pure = True
 
+
 CLASSIFIERS = [
     "Environment :: Console",
-    "Environment :: MacOS X",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: BSD License",
     "Natural Language :: English",
     "Operating System :: POSIX :: Linux",
-    "Operating System :: MacOS :: MacOS X",
     "Programming Language :: C++",
     "Programming Language :: Python :: 3.5",
     "Programming Language :: Python :: 3.6",
-    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering",
 ]
 
 SETUP_METADATA = \
