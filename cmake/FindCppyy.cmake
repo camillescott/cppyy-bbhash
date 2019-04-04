@@ -415,6 +415,14 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
     foreach(extra_python IN LISTS ARG_EXTRA_PYTHONS)
         file(GENERATE OUTPUT ${pkg_dir}/../${extra_python} INPUT ${CMAKE_CURRENT_SOURCE_DIR}/${extra_python})
     endforeach()
+
+    #
+    # Copy pure python code
+    #
+    file(COPY ${CMAKE_SOURCE_DIR}/py/ DESTINATION ${pkg_dir}
+         FILES_MATCHING PATTERN "*.py")
+
+
     #
     # Return results.
     #
