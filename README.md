@@ -34,7 +34,11 @@ For this repository:
     python setup.py bdist_wheel
     pip install dist/cppyy_bbhash-*.whl
 
+To use this repo as a template for you own bindings, you'll want to modify the selection.xml,
+interface.hh, and CMakeLists.txt, as well as swap out the submodule.
+
 # TODOS
 
 - The CMake code for finding libclang is a bit fragile in conda environments.
 - Have CMake produce install commands to invoke setup.py and the pip install.
+- Create a PyPA package with a script to generate a repo using this this one as a template.
