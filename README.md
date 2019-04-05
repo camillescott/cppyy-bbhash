@@ -35,7 +35,11 @@ it makes a number of improvements and changes:
 
 ## Example Usage
 
-For this repository:
+For this repository with anaconda:
+
+    conda create -n cppyy-example python=3 cmake cxx-compiler
+    conda activate cppyy-example 
+    pip install cppyy clang
 
     git clone https://github.com/camillescott/cppyy-bbhash
     cd cppyy-bbhash
