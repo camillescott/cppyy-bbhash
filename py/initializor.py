@@ -49,7 +49,8 @@ PRIMITIVE_TYPES = re.compile(r"\b(bool|char|short|int|unsigned|long|float|double
 
 def add_pythonizations(py_files, noisy=False):
     for py_file in py_files:
-        print('check', py_file)
+        if noisy:
+            print('check', py_file, 'for pythonizors')
         if not os.path.basename(py_file).startswith('pythonize'):
             continue
         module_name = inspect.getmodulename(py_file)
@@ -63,7 +64,8 @@ def add_pythonizations(py_files, noisy=False):
             tokens = name.split('_')
             if len(tokens) > 1:
                 namespace = tokens[1]
-                print('added pythonization', func, namespace)
+                if noisy:
+                    print('added pythonization', func, namespace)
                 cppyy.py.add_pythonization(func, namespace)
 
 
@@ -121,7 +123,6 @@ def initialise(pkg, lib_file, map_file):
             result = gC2POperatorMapping.get(op, None)
             if result:
                 return result
-            print(children)
 
             bTakesParams = 1
             if op == "*":
@@ -165,7 +166,6 @@ def initialise(pkg, lib_file, map_file):
         #
         # Classes, variables etc.
         #
-        print(simplename)
         try:
             entity = getattr(cppyy.gbl, simplename)
         except AttributeError as e:
@@ -182,7 +182,6 @@ def initialise(pkg, lib_file, map_file):
     else:
         pkg_namespace, pkg_simplename = "", pkg
     pkg_module = sys.modules[pkg]
-    print('__init__:', lib_file, map_file)
     #
     # Load the library.
     #
@@ -205,7 +204,7 @@ def initialise(pkg, lib_file, map_file):
     #
     # Load pythonizations
     #
-    pythonization_files = glob.glob('**/pythonize*.py', recursive=True)
+    pythonization_files = glob.glob(os.path.join(pkg_dir, '**/pythonize*.py'), recursive=True)
     add_pythonizations(pythonization_files)
 
 

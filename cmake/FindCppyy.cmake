@@ -385,11 +385,6 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
     file(COPY ${LICENSE_FILE} DESTINATION . USE_SOURCE_PERMISSIONS)
 
     #
-    # Copy initializor code
-    #
-    file(COPY ${CMAKE_SOURCE_DIR}/initializor.py DESTINATION ${pkg_dir} USE_SOURCE_PERMISSIONS)
-
-    #
     # Generate a pytest/nosetest sanity test script.
     #
     set(PKG ${pkg})
