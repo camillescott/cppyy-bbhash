@@ -25,13 +25,14 @@ except ImportError:
     #
     import importlib.util
 
-    def load_source(module_name, file_path):
+    def load_source(module_name, file_path, add_to_sys=False):
         spec = importlib.util.spec_from_file_location(module_name, file_path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         # Optional; only necessary if you want to be able to import the module
         # by name later.
-        sys.modules[module_name] = module
+        if add_to_sys:
+            sys.modules[module_name] = module
         return module
 
 import cppyy
@@ -44,6 +45,27 @@ _ = _
 
 
 PRIMITIVE_TYPES = re.compile(r"\b(bool|char|short|int|unsigned|long|float|double)\b")
+
+
+def add_pythonizations(py_files, noisy=False):
+    for py_file in py_files:
+        print('check', py_file)
+        if not os.path.basename(py_file).startswith('pythonize'):
+            continue
+        module_name = inspect.getmodulename(py_file)
+        module      = load_source(module_name, py_file)
+        funcs       = inspect.getmembers(module, predicate=inspect.isroutine)
+
+        pythonizors = {}
+        for name, func in funcs:
+            if not name.startswith('pythonize'):
+                continue
+            tokens = name.split('_')
+            if len(tokens) > 1:
+                namespace = tokens[1]
+                print('added pythonization', func, namespace)
+                cppyy.py.add_pythonization(func, namespace)
+
 
 
 def initialise(pkg, lib_file, map_file):
@@ -181,24 +203,10 @@ def initialise(pkg, lib_file, map_file):
             simplenames = child["name"].split('::')
             add_to_pkg(file["name"], child["kind"], simplenames, child)
     #
-    # Load any customisations.
+    # Load pythonizations
     #
-    extra_pythons = glob.glob(os.path.join(pkg_dir, "extra_*.py"))
-    for extra_python in extra_pythons:
-        extra_module = os.path.basename(extra_python)
-        extra_module = pkg + "." + os.path.splitext(extra_module)[0]
-        #
-        # Deleting the modules after use runs the risk of GC running on
-        # stuff we are using, such as ctypes.c_int.
-        #
-        extra = load_source(extra_module, extra_python)
-        #
-        # Valid customisations are routines named "c13n_<something>".
-        #
-        fns = inspect.getmembers(extra, predicate=inspect.isroutine)
-        fns = {fn[0]: fn[1] for fn in fns if fn[0].startswith("c13n_")}
-        for fn in sorted(fns):
-            fns[fn](pkg_module)
+    pythonization_files = glob.glob('**/pythonize*.py', recursive=True)
+    add_pythonizations(pythonization_files)
 
 
 def find_pips():
