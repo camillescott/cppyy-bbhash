@@ -10,7 +10,7 @@ import sys
 from distutils.command.clean import clean
 from distutils.util import get_platform
 from setuptools.command.build_py import build_py
-from setuptools import setup
+from setuptools import setup, find_namespace_packages
 from wheel.bdist_wheel import bdist_wheel
 
 PKG              = '@CPPYY_PKG@'
@@ -112,7 +112,7 @@ SETUP_METADATA = \
     "long_description":     open("README.rst").read(),
     "author":               AUTHOR,
     "author_email":         EMAIL,
-    "packages":             [PKG, PKG + '.tests'],
+    "packages":             find_namespace_packages(),
     "include_package_data": True,
     "zip_safe":             False,
     "platforms":            ['any'],

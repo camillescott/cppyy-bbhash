@@ -19,7 +19,6 @@ def is_template_inst(short_name, full_name):
 
 
 def pythonize_boomphf_mphf_query(klass, name):
-    print('pythonizing')
     if is_template_inst('mphf', name):
         def query(self, key):
             val = self.lookup(key)
