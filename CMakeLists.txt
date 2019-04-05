@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(cppyy_bbhash LANGUAGES CXX VERSION 0.1 DESCRIPTION "cppyy bindings for bbhash")
+project(cppyy_bbhash
+        LANGUAGES CXX 
+        VERSION 0.1 
+        HOMEPAGE_URL "https://github.com/camillescott/cppyy-bbhash"
+        DESCRIPTION "cppyy bindings for bbhash")
 
 # headers are listed in a cmake file.
 include(${CMAKE_SOURCE_DIR}/cmake/headers.cmake)
@@ -56,7 +60,7 @@ target_link_libraries(bbhash
 # more modern way anyhow? Code was modified from the versions cppyy distributes.
 #
 cppyy_add_bindings(
-   "cppyy_bbhash" "1.0" "Camille Scott" "cswel@ucdavis.edu"
+    "cppyy_bbhash" "${PROJECT_VERSION}" "Camille Scott" "cswel@ucdavis.edu"
    LICENSE "MIT"
    LANGUAGE_STANDARD "14"
    SELECTION_XML  ${CMAKE_CURRENT_SOURCE_DIR}/selection.xml

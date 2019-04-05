@@ -1,11 +1,9 @@
-import gettext
+#!/usr/bin/env python
+
 import inspect
 import os
 import re
 import setuptools
-import subprocess
-import sys
-
 
 from distutils.command.clean import clean
 from distutils.util import get_platform
@@ -13,10 +11,12 @@ from setuptools.command.build_py import build_py
 from setuptools import setup, find_namespace_packages
 from wheel.bdist_wheel import bdist_wheel
 
+
 PKG              = '@CPPYY_PKG@'
 VERSION          = '@PROJECT_VERSION@'
 AUTHOR           = '@AUTHOR@'
 EMAIL            = '@EMAIL@'
+LICENSE          = '@BINDINGS_LICENSE@'
 (PKG_NAMESPACE,
  PKG_SIMPLENAME) = PKG.rsplit(".", 1) if '.' in PKG else "", PKG
 PKG_DIR          = os.path.dirname(__file__)
