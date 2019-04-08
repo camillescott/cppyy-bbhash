@@ -37,7 +37,7 @@ it makes a number of improvements and changes:
 
 For this repository with anaconda:
 
-    conda create -n cppyy-example python=3 cmake cxx-compiler c-compiler clangdev libcxx libstdcxx-ng libgcc-ng
+    conda create -n cppyy-example python=3 cmake cxx-compiler c-compiler clangdev libcxx libstdcxx-ng libgcc-ng pytest
     conda activate cppyy-example 
     pip install cppyy clang
 
@@ -51,6 +51,10 @@ For this repository with anaconda:
 
     python setup.py bdist_wheel
     pip install dist/cppyy_bbhash-*.whl
+
+And then to test:
+
+    py.test -v cppyy_bbhash/tests/test_bbhash_basic.py
 
 To use this repo as a template for you own bindings, you'll want to modify the selection.xml,
 interface.hh, and CMakeLists.txt, as well as swap out the submodule.
