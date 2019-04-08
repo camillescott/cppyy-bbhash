@@ -37,7 +37,7 @@ it makes a number of improvements and changes:
 
 For this repository with anaconda:
 
-    conda create -n cppyy-example python=3 cmake cxx-compiler
+    conda create -n cppyy-example python=3 cmake cxx-compiler c-compiler clangdev libcxx libstdcxx-ng libgcc-ng
     conda activate cppyy-example 
     pip install cppyy clang
 
