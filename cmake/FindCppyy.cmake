@@ -24,14 +24,13 @@
 #
 #
 
-find_program(genreflex_EXEC NAMES genreflex)
-execute_process(COMMAND cling-config --cmake OUTPUT_VARIABLE CPYY_MODULE_PATH OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND cling-config --cmake OUTPUT_VARIABLE CPPYY_MODULE_PATH OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-if(genreflex_EXEC)
+if(CPPYY_MODULE_PATH)
     #
     # Cppyy_DIR: one level above the installed cppyy cmake module path
     #
-    set(Cppyy_DIR ${CPYY_MODULE_PATH}/../)
+    set(Cppyy_DIR ${CPPYY_MODULE_PATH}/../)
     #
     # Cppyy_INCLUDE_DIRS: Directory with cppyy headers
     #
@@ -39,7 +38,7 @@ if(genreflex_EXEC)
     #
     # Cppyy_VERSION.
     #
-    find_package(ROOT QUIET REQUIRED PATHS ${CPYY_MODULE_PATH})
+    find_package(ROOT QUIET REQUIRED PATHS ${CPPYY_MODULE_PATH})
     if(ROOT_FOUND)
         set(Cppyy_VERSION ${ROOT_VERSION})
     endif()
@@ -47,7 +46,7 @@ endif()
 
 include(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(Cppyy
-                                  REQUIRED_VARS genreflex_EXEC Cppyy_DIR Cppyy_INCLUDE_DIRS
+                                  REQUIRED_VARS ROOT_genreflex_CMD Cppyy_DIR Cppyy_INCLUDE_DIRS CPPYY_MODULE_PATH
                                   VERSION_VAR Cppyy_VERSION
 )
 mark_as_advanced(Cppyy_VERSION)
@@ -278,6 +277,15 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
     endif()
 
     #
+    # Includes
+    #
+    foreach(dir ${ARG_INCLUDE_DIRS})
+        list(APPEND includes "-I${dir}")
+    endforeach()
+    
+    find_package(LibClang REQUIRED)
+
+    #
     # Set up genreflex args.
     #
     set(genreflex_args)
@@ -293,9 +301,8 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
     list(APPEND genreflex_args "--rootmap=${rootmap_file}")
     list(APPEND genreflex_args "--rootmap-lib=${lib_file}")
     list(APPEND genreflex_args "-l" "${lib_file}")
-
-    foreach(dir ${ARG_INCLUDE_DIRS})
-        list(APPEND genreflex_args "-I${dir}")
+    foreach(dir ${includes})
+        list(APPEND genreflex_args "${dir}")
     endforeach(dir)
 
     set(genreflex_cxxflags "--cxxflags")
@@ -306,7 +313,7 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
     #
     file(MAKE_DIRECTORY ${pkg_dir})
     add_custom_command(OUTPUT ${cpp_file} ${rootmap_file} ${pcm_file}
-                       COMMAND ${genreflex_EXEC} ${genreflex_args} ${genreflex_cxxflags}
+                       COMMAND ${ROOT_genreflex_CMD} ${genreflex_args} ${genreflex_cxxflags}
                        DEPENDS ${ARG_INTERFACE_FILE}
                        WORKING_DIRECTORY ${pkg_dir}
     )
@@ -315,15 +322,16 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
     # Set up cppyy-generator args.
     #
     list(APPEND ARG_GENERATE_OPTIONS "-std=c++${ARG_LANGUAGE_STANDARD}")
-    foreach(dir ${ARG_INCLUDE_DIRS})
-        list(APPEND ARG_GENERATE_OPTIONS "-I${dir}")
-    endforeach(dir)
+    if(${CONDA_ACTIVE})
+        set(CLANGDEV_INCLUDE $ENV{CONDA_PREFIX}/lib/clang/${CLANG_VERSION_STRING}/include)
+        message(STATUS "adding conda clangdev includes to cppyy-generator options (${CLANGDEV_INCLUDE})")
+        list(APPEND ARG_GENERATE_OPTIONS "-I${CLANGDEV_INCLUDE}")
+    endif()
     #
     # Run cppyy-generator. First check dependencies. TODO: temporary hack: rather
     # than an external dependency, enable libclang in the local build.
     #
-    find_package(LibClang REQUIRED)
-    get_filename_component(Cppyygen_EXECUTABLE ${genreflex_EXEC} DIRECTORY)
+    get_filename_component(Cppyygen_EXECUTABLE ${ROOT_genreflex_CMD} DIRECTORY)
     set(Cppyygen_EXECUTABLE ${Cppyygen_EXECUTABLE}/cppyy-generator)
 
     set(generator_args)

@@ -6,12 +6,24 @@ project(cppyy_bbhash
         HOMEPAGE_URL "https://github.com/camillescott/cppyy-bbhash"
         DESCRIPTION "cppyy bindings for bbhash")
 
+if(DEFINED ENV{CONDA_PREFIX})
+    message(STATUS "Building in a conda environment.")
+    set(CONDA_ACTIVE TRUE)
+    set(CMAKE_INSTALL_PREFIX "$ENV{CONDA_PREFIX}")
+    set(CMAKE_PREFIX_PATH "$ENV{CONDA_PREFIX}")
+    set(CMAKE_INCLUDE_PATH "$ENV{CONDA_PREFIX}/include")
+    #include_directories($ENV{CONDA_PREFIX}/include)
+    set(CMAKE_LIBRARY_PATH "$ENV{CONDA_PREFIX}/lib")
+endif()
+
+set(CMAKE_INCLUDE_DIRECTORIES_BEFORE ON)
+
 # headers are listed in a cmake file.
 include(${CMAKE_SOURCE_DIR}/cmake/headers.cmake)
 include(GNUInstallDirs)
 
 # we want the conda includes if we're in a conda environment.
-include_directories($ENV{CONDA_PREFIX}/include)
+#
 
 #
 # Add our project's cmake dir the the module path. This gives us the

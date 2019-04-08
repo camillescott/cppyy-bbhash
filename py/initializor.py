@@ -70,7 +70,7 @@ def add_pythonizations(py_files, noisy=False):
 
 
 
-def initialise(pkg, lib_file, map_file):
+def initialise(pkg, lib_file, map_file, noisy=True):
     """
     Initialise the bindings module.
 
@@ -169,7 +169,8 @@ def initialise(pkg, lib_file, map_file):
         try:
             entity = getattr(cppyy.gbl, simplename)
         except AttributeError as e:
-            print(_("Unable to lookup {}:{} cppyy.gbl.{} ({})").format(file, keyword, simplename, children))
+            if noisy:
+                print(_("Unable to lookup {}:{} cppyy.gbl.{} ({})").format(file, keyword, simplename, children))
             #raise
         else:
             if getattr(entity, "__module__", None) == "cppyy.gbl":
@@ -189,7 +190,7 @@ def initialise(pkg, lib_file, map_file):
     #
     # Parse the map file.
     #
-    with open(os.path.join(pkg_dir, map_file), 'rU') as map_file:
+    with open(os.path.join(pkg_dir, map_file), 'r') as map_file:
         files = json.load(map_file)
     #
     # Iterate over all the items at the top level of each file, and add them
@@ -206,35 +207,3 @@ def initialise(pkg, lib_file, map_file):
     #
     pythonization_files = glob.glob(os.path.join(pkg_dir, '**/pythonize*.py'), recursive=True)
     add_pythonizations(pythonization_files)
-
-
-def find_pips():
-    """
-    What pip versions do we have?
-
-    :return: [pip_program]
-    """
-    possible_pips = ['pip', 'pip2', 'pip3']
-    pips = {}
-    for pip in possible_pips:
-        try:
-            #
-            # The command 'pip -V' returns a string of the form:
-            #
-            #   pip 9.0.1 from /usr/lib/python2.7/dist-packages (python 2.7)
-            #
-            version = subprocess.check_output([pip, '-V'])
-        except subprocess.CalledProcessError:
-            pass
-        else:
-            version = version.rsplit('(', 1)[-1]
-            version = version.split()[-1]
-            #
-            # All pip variants that map onto a given Python version are de-duped.
-            #
-            pips[version] = pip
-    #
-    # We want the pip names.
-    #
-    assert len(pips), 'No viable pip versions found'
-    return pips.values()

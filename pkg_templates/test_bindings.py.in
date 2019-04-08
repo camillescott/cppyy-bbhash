@@ -5,15 +5,13 @@ import pydoc
 import subprocess
 import sys
 
-from cppyy_backend import bindings_utils
-
 
 SCRIPT_DIR = os.path.dirname(__file__)
 pkg = '@PKG@'
 PIPS = None
 
 
-class Test(object):
+class TestBindings(object):
     @classmethod
     def setup_class(klass):
         #
@@ -24,8 +22,6 @@ class Test(object):
             logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(name)s %(levelname)s: %(message)s')
         else:
             logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
-        global PIPS
-        PIPS = bindings_utils.find_pips()
 
     @classmethod
     def teardown_class(klass):
@@ -38,8 +34,7 @@ class Test(object):
         '''This method is run once after _each_ test method is executed'''
 
     def test_install(self):
-        for pip in PIPS:
-            subprocess.check_call([pip, 'install', '--force-reinstall', '--pre', '.'], cwd=SCRIPT_DIR)
+        subprocess.check_call(['pip', 'install', '--force-reinstall', '--pre', '.'], cwd=os.getcwd())
 
     def test_import(self):
         __import__(pkg)
@@ -48,6 +43,5 @@ class Test(object):
         pydoc.render_doc(pkg)
 
     def test_uninstall(self):
-        for pip in PIPS:
-            subprocess.check_call([pip, 'uninstall', '--yes', pkg], cwd=SCRIPT_DIR)
+        subprocess.check_call(['pip', 'uninstall', '--yes', pkg], cwd=os.getcwd())
 
