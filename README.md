@@ -1,6 +1,6 @@
 # cppyy-bbhash: cppyy-generated bindings for bbhash
 
-This repository is both a working set of cppyy bindings for
+This repository is both a working set of [cppyy](https://bitbucket.org/wlav/cppyy/src/master/) bindings for
 [bbhash](https://github.com/rizkg/BBHash) and an example of a CMake
 workflow for automatically generating bindings and a python package
 with cppyy. Although it is based on the bundled cppyy cmake modules,
@@ -18,6 +18,10 @@ it makes a number of improvements and changes:
     themselves should be named `pythonize_<NAMESPACE>_*.py`, where `<NAMESPACE>` refers to the
     namespace the pythonizor will be added to in the `cppyy.py.add_pythonization` call. These will
     be automatically found and added by the initializor.
+
+And example of cppyy's bundled cmake support can be found
+[here](https://github.com/jclay/cppyy-knearestneighbors-example); there is also a listing of cppyy
+example projects in the [cppyy documentation](https://cppyy.readthedocs.io/en/latest/examples.html).
 
 ## Repo Structure
 
