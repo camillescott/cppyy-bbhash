@@ -1,10 +1,10 @@
-language: cpp
+language: generic
 sudo: required
 dist: trusty
 matrix:
     include:
         - name: "PYTHON35"
-          env: PYVERSION="3.5"
+          env: PYVERSION="3.5" COMPILER_NAME=gcc CXX=g++-6 CC=gcc-6
           addons:
               apt:
                   sources:
@@ -12,7 +12,7 @@ matrix:
                   packages:
                        - g++-6
         - name: "PYTHON36"
-          env: PYVERSION="3.6"
+          env: PYVERSION="3.6" COMPILER_NAME=gcc CXX=g++-6 CC=gcc-6
           addons:
                 apt:
                     sources:
@@ -20,7 +20,7 @@ matrix:
                     packages:
                         - g++-6
         - name: "PYTHON37"
-          env: PYVERSION="3.7"
+          env: PYVERSION="3.7" COMPILER_NAME=gcc CXX=g++-6 CC=gcc-6
           addons:
                 apt:
                     sources:
