@@ -1,0 +1,25 @@
+language: python
+sudo: required
+dist: trusty
+python:
+    - "3.5"
+    - "3.6"
+    - "3.7"
+before_script:
+    - sudo apt-get update
+    - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+    - bash miniconda.sh -b -p $HOME/miniconda
+    - export PATH="$HOME/miniconda/bin:$PATH"
+    - conda config --set always_yes yes --set changeps1 no
+    - conda update -q conda
+    - conda info -a
+    - conda create -q -n test python=$TRAVIS_PYTHON_VERSION cmake cxx-compiler c-compiler clangdev libcxx libstdcxx-ng libgcc-ng pytest
+    - conda activate test
+    - pip install cppyy clang
+    - mkdir -p build
+    - cd build
+    - cmake ..
+    - make VERBOSE=1
+    - python setup.py bdist_wheel
+    - pip install dist/cppyy_bbhash-*.whl
+script: py.test -v cppyy_bbhash/tests/test_bbhash_basic.py
