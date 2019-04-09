@@ -1,5 +1,7 @@
 # cppyy-bbhash: cppyy-generated bindings for bbhash
 
+[![Build Status](https://travis-ci.org/camillescott/cppyy-bbhash.svg?branch=master)](https://travis-ci.org/camillescott/cppyy-bbhash)
+
 This repository is both a working set of [cppyy](https://bitbucket.org/wlav/cppyy/src/master/) bindings for
 [bbhash](https://github.com/rizkg/BBHash) and an example of a CMake
 workflow for automatically generating bindings and a python package
