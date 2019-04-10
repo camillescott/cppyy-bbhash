@@ -351,12 +351,14 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
     # Compile/link.
     #
     add_library(${lib_name} SHARED ${cpp_file} ${pcm_file} ${rootmap_file} ${extra_map_file})
+    set_target_properties(${lib_name} PROPERTIES LINKER_LANGUAGE CXX)
     set_property(TARGET ${lib_name} PROPERTY VERSION ${version})
     set_property(TARGET ${lib_name} PROPERTY CXX_STANDARD ${ARG_LANGUAGE_STANDARD})
     set_property(TARGET ${lib_name} PROPERTY LIBRARY_OUTPUT_DIRECTORY ${pkg_dir})
+    set_property(TARGET ${lib_name} PROPERTY LINK_WHAT_YOU_USE TRUE)
     target_include_directories(${lib_name} PRIVATE ${Cppyy_INCLUDE_DIRS} ${ARG_INCLUDE_DIRS})
     target_compile_options(${lib_name} PRIVATE ${ARG_COMPILE_OPTIONS})
-    target_link_libraries(${lib_name} ${LibCling_LIBRARY} ${ARG_LINK_LIBRARIES})
+    target_link_libraries(${lib_name} PUBLIC ${LibCling_LIBRARY} ${ARG_LINK_LIBRARIES})
 
     #
     # Generate __init__.py
@@ -378,7 +380,6 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
                          ${pcm_file}
                          ${extra_map_file}
     )
-    set(SETUP_PY_FILE ${SETUP_PY_FILE} PARENT_SCOPE)
 
     #
     # Generate setup.cfg
@@ -416,10 +417,35 @@ function(cppyy_add_bindings pkg pkg_version author author_email)
     file(COPY ${ARG_EXTRA_FILES} DESTINATION ${pkg_dir} USE_SOURCE_PERMISSIONS)
 
     #
+    # Kinda ugly: you'e not really supposed to glob like this. Oh well. Using this to set
+    # dependencies for the python wheel building command; the file copy above is done on every
+    # cmake invocation anyhow.
+    #
+    # Then, get the system architecture and build the wheel string based on PEP 427.
+    #
+    file(GLOB_RECURSE PY_PKG_FILES
+         LIST_DIRECTORIES FALSE
+         CONFIGURE_DEPENDS
+         "${CMAKE_SOURCE_DIR}/py/*.py")
+    string(TOLOWER ${CMAKE_SYSTEM_NAME} SYSTEM_STR)
+    set(pkg_whl "${CMAKE_BINARY_DIR}/dist/${pkg}-${pkg_version}-py3-none-${SYSTEM_STR}_${CMAKE_SYSTEM_PROCESSOR}.whl")
+    add_custom_command(OUTPUT  ${pkg_whl}
+                       COMMAND ${LibClang_PYTHON_EXECUTABLE} setup.py bdist_wheel
+                       DEPENDS ${SETUP_PY_FILE} ${lib_name} ${setup_cfg}
+                       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    )
+    add_custom_target(wheel ALL
+                      DEPENDS ${pkg_whl}
+    )
+    add_dependencies(wheel ${lib_name})
+
+    #
     # Return results.
     #
+    set(LIBCLING         ${LibCling_LIBRARY} PARENT_SCOPE)
     set(CPPYY_LIB_TARGET ${lib_name} PARENT_SCOPE)
-    set(SETUP_PY_FILE    ${setup_py} PARENT_SCOPE)
+    set(SETUP_PY_FILE    ${SETUP_PY_FILE} PARENT_SCOPE)
+    set(PY_WHEEL_FILE    ${pkg_whl}  PARENT_SCOPE)
 endfunction(cppyy_add_bindings)
 
 

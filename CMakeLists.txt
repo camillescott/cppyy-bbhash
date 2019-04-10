@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 project(cppyy_bbhash
         LANGUAGES CXX 
-        VERSION 0.1 
+        VERSION 0.9
         HOMEPAGE_URL "https://github.com/camillescott/cppyy-bbhash"
         DESCRIPTION "cppyy bindings for bbhash")
 
@@ -19,11 +19,8 @@ endif()
 set(CMAKE_INCLUDE_DIRECTORIES_BEFORE ON)
 
 # headers are listed in a cmake file.
-include(${CMAKE_SOURCE_DIR}/cmake/headers.cmake)
+include(${CMAKE_SOURCE_DIR}/manifest.cmake)
 include(GNUInstallDirs)
-
-# we want the conda includes if we're in a conda environment.
-#
 
 #
 # Add our project's cmake dir the the module path. This gives us the
@@ -50,12 +47,13 @@ find_package(Threads)
 # Make an object file with the cpp header 
 #
 add_library(bbhash STATIC
-            ${HEADERS}
+            ${LIB_HEADERS}
 )
 set_target_properties(bbhash PROPERTIES LINKER_LANGUAGE CXX)
+set_target_properties(bbhash PROPERTIES PUBLIC_HEADER ${LIB_HEADERS})
 target_include_directories(bbhash
                            PUBLIC
-                           ${CMAKE_SOURCE_DIR}/bbhash
+                           ${CMAKE_SOURCE_DIR}
 )
 target_link_libraries(bbhash
                       PRIVATE
@@ -75,10 +73,18 @@ cppyy_add_bindings(
     "cppyy_bbhash" "${PROJECT_VERSION}" "Camille Scott" "cswel@ucdavis.edu"
    LICENSE "MIT"
    LANGUAGE_STANDARD "14"
-   SELECTION_XML  ${CMAKE_CURRENT_SOURCE_DIR}/selection.xml
-   INTERFACE_FILE ${CMAKE_CURRENT_SOURCE_DIR}/interface.hh
-   HEADERS        ${HEADERS} ${CMAKE_CURRENT_SOURCE_DIR}/interface.hh
-   INCLUDE_DIRS   ${CMAKE_CURRENT_SOURCE_DIR}/bbhash
+   SELECTION_XML  ${CMAKE_SOURCE_DIR}/selection.xml
+   INTERFACE_FILE ${CMAKE_SOURCE_DIR}/interface.hh
+   HEADERS        ${LIB_HEADERS} ${CMAKE_SOURCE_DIR}/interface.hh
+   INCLUDE_DIRS   ${CMAKE_SOURCE_DIR}
    LINK_LIBRARIES bbhash
    NAMESPACES     boomphf
 )
+
+
+install(TARGETS       bbhash
+        LIBRARY       DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bbhash
+)
+
+install(CODE "execute_process(COMMAND pip install ${PY_WHEEL_FILE})")
